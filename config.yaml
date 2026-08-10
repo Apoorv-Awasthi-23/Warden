@@ -3,3 +3,6 @@ servers:
     transport: stdio
     command: npx
     args: ["-y", "@modelcontextprotocol/server-everything"]
+
+rules_dir: rules
+approval_timeout: 30s

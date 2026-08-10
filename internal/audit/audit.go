@@ -1,8 +1,10 @@
 package audit
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 	"time"
@@ -67,4 +69,34 @@ func (w *Writer) Log(e Entry) error {
 
 func (w *Writer) Close() error {
 	return w.file.Close()
+}
+
+// ReadAll reads every entry from the JSON Lines audit log at path, in file
+// order (oldest first). Used by internal/backtest to replay history against
+// a candidate rule. A log that doesn't exist yet reads as zero entries
+// rather than an error — nothing has been recorded.
+func ReadAll(path string) ([]Entry, error) {
+	f, err := os.Open(path)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("opening audit log %q: %w", path, err)
+	}
+	defer f.Close()
+
+	var entries []Entry
+	dec := json.NewDecoder(bufio.NewReader(f))
+	for {
+		var e Entry
+		if err := dec.Decode(&e); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, fmt.Errorf("parsing audit log %q: %w", path, err)
+		}
+		entries = append(entries, e)
+	}
+
+	return entries, nil
 }

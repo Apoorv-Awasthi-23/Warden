@@ -1,20 +1,21 @@
 // Package router is the agent-facing half of the Router/Transport Layer
 // (architecture.md section 5.1). It serves the aggregated tool catalog to a
-// connecting agent and forwards every tools/call straight through to the
-// owning upstream server, unmodified — no policy checks yet (Milestone 1).
+// connecting agent and, for every tools/call, asks the Enforcement Layer
+// whether the call may proceed before forwarding it to the owning upstream
+// server (architecture.md section 6, Milestone 2).
 package router
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/audit"
 	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/catalog"
+	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/enforcement"
+	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/policy"
 )
 
 // separator namespaces each upstream tool by its server name (e.g.
@@ -26,13 +27,13 @@ const separator = "__"
 type Router struct {
 	server   *mcp.Server
 	sessions map[string]*mcp.ClientSession
-	audit    *audit.Writer
+	enforcer *enforcement.Enforcer
 }
 
 // New builds a Router exposing every tool currently in cat, forwarding calls
 // to the matching session in sessions (keyed by server name, as configured).
-// auditWriter may be nil, in which case calls are simply not logged.
-func New(cat *catalog.Catalog, sessions map[string]*mcp.ClientSession, auditWriter *audit.Writer) *Router {
+// Every call is checked with enforcer before being forwarded.
+func New(cat *catalog.Catalog, sessions map[string]*mcp.ClientSession, enforcer *enforcement.Enforcer) *Router {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "mcp-policy-proxy",
 		Version: "0.1.0",
@@ -41,7 +42,7 @@ func New(cat *catalog.Catalog, sessions map[string]*mcp.ClientSession, auditWrit
 	rt := &Router{
 		server:   server,
 		sessions: sessions,
-		audit:    auditWriter,
+		enforcer: enforcer,
 	}
 
 	for _, entry := range cat.All() {
@@ -83,40 +84,33 @@ func (rt *Router) callTool(ctx context.Context, req *mcp.CallToolRequest) (*mcp.
 		return nil, fmt.Errorf("no connected server named %q", serverName)
 	}
 
-	result, err := session.CallTool(ctx, &mcp.CallToolParams{
+	var params map[string]any
+	if len(req.Params.Arguments) > 0 {
+		if err := json.Unmarshal(req.Params.Arguments, &params); err != nil {
+			return nil, fmt.Errorf("decoding arguments for %s/%s: %w", serverName, toolName, err)
+		}
+	}
+	cc := policy.CallContext{Server: serverName, Tool: toolName, Params: params}
+
+	result, err := rt.enforcer.Enforce(ctx, req.Session.ID(), cc)
+	if err != nil {
+		return nil, fmt.Errorf("enforcing policy for %s/%s: %w", serverName, toolName, err)
+	}
+	if !result.Allowed {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: result.RejectReason}},
+		}, nil
+	}
+
+	upstreamResult, err := session.CallTool(ctx, &mcp.CallToolParams{
 		Name:      toolName,
 		Arguments: req.Params.Arguments,
 	})
-
-	rt.logCall(req, serverName, toolName, err)
-
 	if err != nil {
 		return nil, fmt.Errorf("forwarding call to %s/%s: %w", serverName, toolName, err)
 	}
-	return result, nil
-}
-
-func (rt *Router) logCall(req *mcp.CallToolRequest, serverName, toolName string, callErr error) {
-	if rt.audit == nil {
-		return
-	}
-
-	outcome := audit.OutcomeAllowed
-	if callErr != nil {
-		outcome = audit.OutcomeHardStopped
-	}
-
-	entry := audit.Entry{
-		AgentID:  req.Session.ID(),
-		Server:   serverName,
-		ToolName: toolName,
-		Params:   json.RawMessage(req.Params.Arguments),
-		Outcome:  outcome,
-	}
-
-	if err := rt.audit.Log(entry); err != nil {
-		log.Printf("audit log write failed: %v", err)
-	}
+	return upstreamResult, nil
 }
 
 // Run starts serving the agent-facing MCP server over stdio. It blocks until
