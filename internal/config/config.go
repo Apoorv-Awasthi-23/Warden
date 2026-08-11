@@ -28,6 +28,12 @@ type ServerConfig struct {
 	Args      []string  `yaml:"args,omitempty"`
 	URL       string    `yaml:"url,omitempty"`
 
+	// Env sets additional environment variables for a stdio server's
+	// process, merged with the proxy's own inherited environment. Used for
+	// upstreams (e.g. OAuth-based servers) that read credentials via env var
+	// rather than a fixed file path. Ignored for http transport.
+	Env map[string]string `yaml:"env,omitempty"`
+
 	// UnsafeAllowPassThroughOnRuleError lets an operator explicitly accept
 	// running this one server unenforced if its rule file fails to load or
 	// compile, instead of the default fail-closed behavior of blocking every

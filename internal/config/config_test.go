@@ -142,3 +142,36 @@ approval_timeout: 45s
 		t.Fatalf("expected ApprovalTimeout 45s, got %v", cfg.ApprovalTimeout)
 	}
 }
+
+func TestLoad_ServerEnv(t *testing.T) {
+	cfg, err := Load(writeConfig(t, `
+servers:
+  - name: calendar
+    transport: stdio
+    command: npx
+    args: ["-y", "@cocal/google-calendar-mcp"]
+    env:
+      GOOGLE_OAUTH_CREDENTIALS: /home/user/.gmail-mcp/gcp-oauth.keys.json
+  - name: gmail
+    transport: stdio
+    command: npx
+    args: ["-y", "@gongrzhe/server-gmail-autoauth-mcp"]
+`))
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(cfg.Servers) != 2 {
+		t.Fatalf("expected 2 servers, got %d", len(cfg.Servers))
+	}
+
+	calendar := cfg.Servers[0]
+	if got := calendar.Env["GOOGLE_OAUTH_CREDENTIALS"]; got != "/home/user/.gmail-mcp/gcp-oauth.keys.json" {
+		t.Fatalf("expected GOOGLE_OAUTH_CREDENTIALS to be set, got %+v", calendar.Env)
+	}
+
+	gmail := cfg.Servers[1]
+	if len(gmail.Env) != 0 {
+		t.Fatalf("expected no env vars for gmail server, got %+v", gmail.Env)
+	}
+}

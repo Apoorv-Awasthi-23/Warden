@@ -85,13 +85,15 @@ func run() error {
 	for _, sc := range cfg.Servers {
 		session, err := upstream.Connect(ctx, sc)
 		if err != nil {
-			return fmt.Errorf("connecting to %q: %w", sc.Name, err)
+			log.Printf("WARNING: connecting to %q: %v — this server will be unavailable", sc.Name, err)
+			continue
 		}
 		defer session.Close()
 
 		tools, err := upstream.ListTools(ctx, session)
 		if err != nil {
-			return fmt.Errorf("listing tools for %q: %w", sc.Name, err)
+			log.Printf("WARNING: listing tools for %q: %v — this server will be unavailable", sc.Name, err)
+			continue
 		}
 
 		// Load the prior schema dump before it gets overwritten below, so it

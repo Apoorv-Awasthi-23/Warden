@@ -3,6 +3,7 @@ package upstream
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -15,9 +16,14 @@ func Connect(ctx context.Context, sc config.ServerConfig) (*mcp.ClientSession, e
 
 	switch sc.Transport {
 	case config.TransportStdio:
-		transport = &mcp.CommandTransport{
-			Command: exec.Command(sc.Command, sc.Args...),
+		cmd := exec.Command(sc.Command, sc.Args...)
+		if len(sc.Env) > 0 {
+			cmd.Env = os.Environ()
+			for k, v := range sc.Env {
+				cmd.Env = append(cmd.Env, k+"="+v)
+			}
 		}
+		transport = &mcp.CommandTransport{Command: cmd}
 	case config.TransportHTTP:
 		transport = &mcp.StreamableClientTransport{
 			Endpoint: sc.URL,

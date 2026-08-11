@@ -1,0 +1,6 @@
+rules:
+  - id: block-run-code-unsafe
+    cel_expression: tool == "browser_run_code_unsafe"
+    action: hard_stop
+    author: apoorv
+    intent_description: "browser_run_code_unsafe executes arbitrary JavaScript in the Playwright server process and is RCE-equivalent per its own tool description — block it outright rather than let an agent run arbitrary code through the proxy"
