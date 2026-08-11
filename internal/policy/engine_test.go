@@ -106,6 +106,27 @@ func TestEvaluate_ServerScopeFiltering(t *testing.T) {
 	}
 }
 
+func TestEvaluate_UnrelatedServerRuleNeverEvaluated(t *testing.T) {
+	// github's rule references params.force without a has() guard, which
+	// errors at eval time if the field is missing (see
+	// TestEvaluate_MissingFieldWithoutGuardFailsClosedWithExplicitError
+	// below). A call to aws carries no such param. If Evaluate merely
+	// skipped this rule on a scope mismatch after evaluating it, or scanned
+	// it at all, this would surface that CEL runtime error; scoping it out
+	// up front means it's never evaluated for an aws call.
+	engine := mustEngine(t, []rule.Rule{
+		{ID: "github-only", ServerScope: "github", CELExpression: `params.force == true`, Action: rule.ActionHardStop},
+	})
+
+	v, err := engine.Evaluate(CallContext{Server: "aws", Tool: "delete_file", Params: map[string]any{}})
+	if err != nil {
+		t.Fatalf("Evaluate: unexpected error, github's rule should never have been evaluated for aws: %v", err)
+	}
+	if !v.Allowed {
+		t.Fatalf("expected Allowed=true, got %+v", v)
+	}
+}
+
 func TestNewEngine_CompileErrorsAttributedPerServer(t *testing.T) {
 	_, failures, err := NewEngine([]rule.Rule{
 		{ID: "good", ServerScope: "github", CELExpression: `tool == "delete_file"`, Action: rule.ActionHardStop},

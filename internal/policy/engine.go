@@ -44,10 +44,19 @@ type compiledRule struct {
 	program cel.Program
 }
 
+// globalScope is the ServerScope value rulestore assigns to wildcard rules
+// (those loaded from _global.yaml) — matches rulestore's own globalScope
+// constant, which isn't exported since only the ServerScope string crosses
+// the package boundary.
+const globalScope = "*"
+
 // Engine holds every rule that compiled successfully, ready to evaluate.
+// Rules are partitioned by ServerScope so Evaluate only ever walks the
+// rules that can apply to a given call (its own server's scope, plus the
+// "*" wildcard/global bucket) instead of scanning every server's rules.
 type Engine struct {
 	env   *cel.Env
-	rules []compiledRule
+	rules map[string][]compiledRule
 }
 
 // NewEnv builds the fixed CEL evaluation environment every rule is compiled
@@ -85,7 +94,7 @@ func NewEngine(rules []rule.Rule) (*Engine, map[string]error, error) {
 	}
 
 	failureLists := make(map[string][]error)
-	var compiled []compiledRule
+	compiled := make(map[string][]compiledRule)
 
 	for _, r := range rules {
 		ast, iss := env.Compile(r.CELExpression)
@@ -107,7 +116,7 @@ func NewEngine(rules []rule.Rule) (*Engine, map[string]error, error) {
 			continue
 		}
 
-		compiled = append(compiled, compiledRule{rule: r, program: prg})
+		compiled[r.ServerScope] = append(compiled[r.ServerScope], compiledRule{rule: r, program: prg})
 	}
 
 	var failures map[string]error
@@ -142,22 +151,18 @@ func (e *Engine) Evaluate(cc CallContext) (Verdict, error) {
 	var matched []string
 	var sawHardStop, sawRequireApproval bool
 
-	for _, cr := range e.rules {
-		if cr.rule.ServerScope != "*" && cr.rule.ServerScope != cc.Server {
-			continue
-		}
-
+	evalRule := func(cr compiledRule) error {
 		out, _, err := cr.program.Eval(vars)
 		if err != nil {
-			return Verdict{}, fmt.Errorf("rule %q failed to evaluate: %w", cr.rule.ID, err)
+			return fmt.Errorf("rule %q failed to evaluate: %w", cr.rule.ID, err)
 		}
 
 		b, ok := out.(types.Bool)
 		if !ok {
-			return Verdict{}, fmt.Errorf("rule %q failed to evaluate: expected bool result, got %s", cr.rule.ID, out.Type())
+			return fmt.Errorf("rule %q failed to evaluate: expected bool result, got %s", cr.rule.ID, out.Type())
 		}
 		if !bool(b) {
-			continue
+			return nil
 		}
 
 		matched = append(matched, cr.rule.ID)
@@ -166,6 +171,26 @@ func (e *Engine) Evaluate(cc CallContext) (Verdict, error) {
 			sawHardStop = true
 		case rule.ActionRequireApproval:
 			sawRequireApproval = true
+		}
+		return nil
+	}
+
+	// Only the rules scoped to this call's server, plus the global/wildcard
+	// bucket, can ever apply — walking anything else would be pure waste, so
+	// this looks up exactly those two buckets instead of scanning every
+	// server's rules. Two loops rather than one merged slice: appending
+	// e.rules[globalScope] onto e.rules[cc.Server] would risk writing into
+	// that bucket's shared backing array if it has spare capacity.
+	for _, cr := range e.rules[cc.Server] {
+		if err := evalRule(cr); err != nil {
+			return Verdict{}, err
+		}
+	}
+	if cc.Server != globalScope {
+		for _, cr := range e.rules[globalScope] {
+			if err := evalRule(cr); err != nil {
+				return Verdict{}, err
+			}
 		}
 	}
 
