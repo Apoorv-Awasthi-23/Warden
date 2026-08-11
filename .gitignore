@@ -1,1 +1,6 @@
 architecture.md
+bin
+bin/proxy
+local/
+config.yaml
+audit.log
