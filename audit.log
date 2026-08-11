@@ -1,1 +1,0 @@
-{"timestamp":"2026-08-08T19:55:43.143360159+05:30","agent_id":"","server":"everything","tool_name":"echo","params":{"message":"hello through the policy proxy"},"rules_evaluated":null,"outcome":"allowed"}
