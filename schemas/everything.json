@@ -1,0 +1,264 @@
+{
+  "server": "everything",
+  "tools": [
+    {
+      "name": "echo",
+      "description": "Echoes back the input string",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "description": "Message to echo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "type": "object"
+      },
+      "schema_hash": "469e5fe39f8aca53300e488b3cedeab32025468f056d512277d8dcf716e03f64"
+    },
+    {
+      "name": "get-annotated-message",
+      "description": "Demonstrates how annotations can be used to provide metadata about content.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "includeImage": {
+            "default": false,
+            "description": "Whether to include an example image",
+            "type": "boolean"
+          },
+          "messageType": {
+            "description": "Type of message to demonstrate different annotation patterns",
+            "enum": [
+              "error",
+              "success",
+              "debug"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "messageType"
+        ],
+        "type": "object"
+      },
+      "schema_hash": "f43b7279025b7cc0dc00cada999017a280561688e5b25edfe6111c706053fd2b"
+    },
+    {
+      "name": "get-env",
+      "description": "Returns all environment variables, helpful for debugging MCP server configuration",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "schema_hash": "7a014b717a77aac971ea0ab5c0ff47bb13e6cae7ef9442d9dedb15ce36381b15"
+    },
+    {
+      "name": "get-resource-links",
+      "description": "Returns up to ten resource links that reference different types of resources",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "count": {
+            "default": 3,
+            "description": "Number of resource links to return (1-10)",
+            "maximum": 10,
+            "minimum": 1,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "schema_hash": "f6902c0a723f7f414d714b8d6caa728d6ef5fdc26ee5e264044ddcaf5dcf9270"
+    },
+    {
+      "name": "get-resource-reference",
+      "description": "Returns a resource reference that can be used by MCP clients",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "resourceId": {
+            "default": 1,
+            "description": "ID of the text resource to fetch",
+            "type": "number"
+          },
+          "resourceType": {
+            "default": "Text",
+            "enum": [
+              "Text",
+              "Blob"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "schema_hash": "2b8561d5917c981548134f2102328051e14b2f208a59ad67f58b84004c12fd1f"
+    },
+    {
+      "name": "get-roots-list",
+      "description": "Lists the current MCP roots provided by the client. Demonstrates the roots protocol capability even though this server doesn't access files.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "schema_hash": "7a014b717a77aac971ea0ab5c0ff47bb13e6cae7ef9442d9dedb15ce36381b15"
+    },
+    {
+      "name": "get-structured-content",
+      "description": "Returns structured content along with an output schema for client data validation",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "location": {
+            "description": "Choose city",
+            "enum": [
+              "New York",
+              "Chicago",
+              "Los Angeles"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "type": "object"
+      },
+      "schema_hash": "3818e3fec2dd3ae54324a0ff72fda89b8a6ed438e0dce30bbc819a14d27e3d94"
+    },
+    {
+      "name": "get-sum",
+      "description": "Returns the sum of two numbers",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "a": {
+            "description": "First number",
+            "type": "number"
+          },
+          "b": {
+            "description": "Second number",
+            "type": "number"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ],
+        "type": "object"
+      },
+      "schema_hash": "140a7b5bd6582f2e5026e88fc70f513b6e9cb88b906de776c061f52172c657ff"
+    },
+    {
+      "name": "get-tiny-image",
+      "description": "Returns a tiny MCP logo image.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "schema_hash": "7a014b717a77aac971ea0ab5c0ff47bb13e6cae7ef9442d9dedb15ce36381b15"
+    },
+    {
+      "name": "gzip-file-as-resource",
+      "description": "Compresses a single file using gzip compression. Depending upon the selected output type, returns either the compressed data as a gzipped resource or a resource link, allowing it to be downloaded in a subsequent request during the current session.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "data": {
+            "default": "https://raw.githubusercontent.com/modelcontextprotocol/servers/refs/heads/main/README.md",
+            "description": "URL or data URI of the file content to compress",
+            "format": "uri",
+            "type": "string"
+          },
+          "name": {
+            "default": "README.md.gz",
+            "description": "Name of the output file",
+            "type": "string"
+          },
+          "outputType": {
+            "default": "resourceLink",
+            "description": "How the resulting gzipped file should be returned. 'resourceLink' returns a link to a resource that can be read later, 'resource' returns a full resource object.",
+            "enum": [
+              "resourceLink",
+              "resource"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "schema_hash": "0e511013db9be6f8d43186381730efa4be4748416b603cc0bae1474cb6bc945d"
+    },
+    {
+      "name": "simulate-research-query",
+      "description": "Simulates a deep research operation that gathers, analyzes, and synthesizes information. Demonstrates MCP task-based operations with progress through multiple stages. If 'ambiguous' is true and client supports elicitation, sends an elicitation request for clarification.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "ambiguous": {
+            "default": false,
+            "description": "Simulate an ambiguous query that requires clarification (triggers input_required status)",
+            "type": "boolean"
+          },
+          "topic": {
+            "description": "The research topic to investigate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic"
+        ],
+        "type": "object"
+      },
+      "schema_hash": "dbd971702320465eb36f59e2e4cab79f91ea6d070ff70afcff1b19058a44eb1d"
+    },
+    {
+      "name": "toggle-simulated-logging",
+      "description": "Toggles simulated, random-leveled logging on or off.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "schema_hash": "7a014b717a77aac971ea0ab5c0ff47bb13e6cae7ef9442d9dedb15ce36381b15"
+    },
+    {
+      "name": "toggle-subscriber-updates",
+      "description": "Toggles simulated resource subscription updates on or off.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "schema_hash": "7a014b717a77aac971ea0ab5c0ff47bb13e6cae7ef9442d9dedb15ce36381b15"
+    },
+    {
+      "name": "trigger-long-running-operation",
+      "description": "Demonstrates a long running operation with progress updates.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "duration": {
+            "default": 10,
+            "description": "Duration of the operation in seconds",
+            "type": "number"
+          },
+          "steps": {
+            "default": 5,
+            "description": "Number of steps in the operation",
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "schema_hash": "ad07d741b959654717dfe89d81e40bc8bd687c69ecc2278dc5ec728e0bf6413e"
+    }
+  ]
+}

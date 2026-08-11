@@ -1,7 +1,7 @@
 // Command smoketest is a throwaway verification client. It connects to the
 // running proxy binary exactly as a real agent would, lists the aggregated
-// tool catalog, and calls one tool through it, to prove Milestone 1's
-// transparent pass-through actually works end to end.
+// tool catalog, and calls one tool through it, to prove the transparent
+// pass-through actually works end to end.
 package main
 
 import (

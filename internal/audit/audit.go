@@ -1,14 +1,16 @@
 package audit
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 	"time"
 )
 
-// Outcome mirrors the enum in the Audit Log Entry data model, section 8.
+// Outcome mirrors the enum in the Audit Log Entry data model.
 type Outcome string
 
 const (
@@ -20,9 +22,9 @@ const (
 	OutcomeTimedOut        Outcome = "timed_out"
 )
 
-// Entry is one Audit Log Entry, matching architecture.md section 8.
-// RulesEvaluated, Approver, and PrevEntryHash stay empty until Milestone 2's
-// enforcement layer and the v2 hash-chaining upgrade exist to populate them.
+// Entry is one Audit Log Entry.
+// RulesEvaluated, Approver, and PrevEntryHash stay empty until the
+// enforcement layer and a hash-chaining upgrade exist to populate them.
 type Entry struct {
 	Timestamp      time.Time `json:"timestamp"`
 	AgentID        string    `json:"agent_id"`
@@ -67,4 +69,34 @@ func (w *Writer) Log(e Entry) error {
 
 func (w *Writer) Close() error {
 	return w.file.Close()
+}
+
+// ReadAll reads every entry from the JSON Lines audit log at path, in file
+// order (oldest first). Used by internal/backtest to replay history against
+// a candidate rule. A log that doesn't exist yet reads as zero entries
+// rather than an error — nothing has been recorded.
+func ReadAll(path string) ([]Entry, error) {
+	f, err := os.Open(path)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("opening audit log %q: %w", path, err)
+	}
+	defer f.Close()
+
+	var entries []Entry
+	dec := json.NewDecoder(bufio.NewReader(f))
+	for {
+		var e Entry
+		if err := dec.Decode(&e); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, fmt.Errorf("parsing audit log %q: %w", path, err)
+		}
+		entries = append(entries, e)
+	}
+
+	return entries, nil
 }

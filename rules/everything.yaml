@@ -1,0 +1,11 @@
+rules:
+  - id: block-get-env
+    cel_expression: tool == "get-env"
+    action: hard_stop
+    author: apoorv
+    intent_description: "the everything test server's get-env tool dumps process environment variables — block it outright rather than let an agent read secrets from the proxy's own environment"
+  - id: require-approval-long-running-operation
+    cel_expression: tool == "trigger-long-running-operation"
+    action: require_approval
+    author: apoorv
+    intent_description: "require a human to sign off before kicking off the long-running simulated operation"

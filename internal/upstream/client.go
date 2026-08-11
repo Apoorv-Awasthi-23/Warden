@@ -11,16 +11,25 @@ import (
 )
 
 func Connect(ctx context.Context, sc config.ServerConfig) (*mcp.ClientSession, error) {
-	if sc.Transport != config.TransportStdio {
+	var transport mcp.Transport
+
+	switch sc.Transport {
+	case config.TransportStdio:
+		transport = &mcp.CommandTransport{
+			Command: exec.Command(sc.Command, sc.Args...),
+		}
+	case config.TransportHTTP:
+		transport = &mcp.StreamableClientTransport{
+			Endpoint: sc.URL,
+		}
+	default:
 		return nil, fmt.Errorf("server %q: unsupported transport %q", sc.Name, sc.Transport)
 	}
+
 	client := mcp.NewClient(&mcp.Implementation{
 		Name:   "mcp-policy-proxy",
 		Version: "0.1.0",
 	},nil)
-	transport := &mcp.CommandTransport{
-		Command: exec.Command(sc.Command, sc.Args...),
-	}
 	session, err:= client.Connect(ctx, transport, nil)
 	if err!= nil{
 		return nil, fmt.Errorf("connecting to server %q: %w", sc.Name, err)
