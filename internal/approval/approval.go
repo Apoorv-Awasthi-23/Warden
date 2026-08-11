@@ -1,7 +1,6 @@
-// Package approval implements the v1 Approval Flow decision surface
-// described in architecture.md section 5.4: a blocking CLI prompt, fail
-// closed on timeout, with an explicit rejection message distinguishable
-// from any other kind of failure.
+// Package approval implements the Approval Flow decision surface: a
+// blocking CLI prompt, fail closed on timeout, with an explicit rejection
+// message distinguishable from any other kind of failure.
 //
 // The proxy's own stdin/stdout are already claimed by the MCP stdio
 // transport it uses to talk to the connecting agent (see router.Router.Run),
@@ -24,9 +23,9 @@ import (
 	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/policy"
 )
 
-// timedOutReason is the exact wording architecture.md section 5.4
-// prescribes, so a timeout is distinguishable from a crash or an unrelated
-// failure when someone is debugging agent behavior later.
+// timedOutReason is exact, fixed wording so a timeout is distinguishable
+// from a crash or an unrelated failure when someone is debugging agent
+// behavior later.
 const timedOutReason = "blocked — no approval received within the time limit"
 
 type Decision string
@@ -39,8 +38,8 @@ const (
 
 // Prompter is the CLI approval decision surface. A sync.Mutex serializes
 // concurrent prompts so two simultaneous require-approval calls can't
-// interleave garbled output on the same terminal — the architecture doc's
-// "CLI only" decision surface implicitly assumes one prompt at a time.
+// interleave garbled output on the same terminal — a CLI prompt only makes
+// sense one at a time.
 type Prompter struct {
 	mu sync.Mutex
 }
@@ -117,9 +116,9 @@ func parseDecision(line string) (Decision, string) {
 }
 
 // approverIdentity is necessarily just the local OS user, not a verified
-// identity — architecture.md section 5.4 explicitly rules out building a
-// separate auth system for v1, so the trust boundary is "whoever has access
-// to the session the proxy is running in," not a per-decision credential.
+// identity — there is no separate auth system, so the trust boundary is
+// "whoever has access to the session the proxy is running in," not a
+// per-decision credential.
 func approverIdentity() string {
 	if u, err := user.Current(); err == nil && u.Username != "" {
 		return u.Username

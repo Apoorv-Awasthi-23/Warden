@@ -11,7 +11,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// Entry is the Tool Schema Entry described in architecture.md section 8.
+// Entry is one tool's schema entry.
 type Entry struct {
 	Server     string
 	ToolName   string

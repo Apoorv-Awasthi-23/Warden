@@ -59,6 +59,26 @@ func TestRun_InvalidRuleReturnsError(t *testing.T) {
 	}
 }
 
+func TestRun_ExamplesCappedAtMaxExamples(t *testing.T) {
+	now := time.Now()
+	var entries []audit.Entry
+	for i := 0; i < maxExamples+5; i++ {
+		entries = append(entries, audit.Entry{Timestamp: now, Server: "github", ToolName: "delete_file"})
+	}
+	r := rule.Rule{ID: "r1", ServerScope: "github", CELExpression: `tool == "delete_file"`, Action: rule.ActionHardStop}
+
+	result, err := Run(r, entries, now.Add(-time.Hour))
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if result.Matched != maxExamples+5 {
+		t.Fatalf("expected every entry to count as matched, got %d", result.Matched)
+	}
+	if len(result.Examples) != maxExamples {
+		t.Fatalf("expected Examples capped at %d, got %d", maxExamples, len(result.Examples))
+	}
+}
+
 func TestRun_EvaluationErrorsAreSkippedNotFatal(t *testing.T) {
 	now := time.Now()
 	entries := []audit.Entry{

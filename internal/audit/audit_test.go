@@ -1,7 +1,9 @@
 package audit
 
 import (
+	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
@@ -69,6 +71,55 @@ func TestReadAll_EmptyFileIsNotAnError(t *testing.T) {
 	}
 	if len(entries) != 0 {
 		t.Fatalf("expected zero entries, got %+v", entries)
+	}
+}
+
+func TestLog_ConcurrentWrites(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "audit.log")
+	w, err := Open(path)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	const goroutines = 20
+	var wg sync.WaitGroup
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			if err := w.Log(Entry{Server: "github", ToolName: "push", Outcome: OutcomeAllowed}); err != nil {
+				t.Errorf("Log: %v", err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	if err := w.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	entries, err := ReadAll(path)
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+	if len(entries) != goroutines {
+		t.Fatalf("expected %d entries from concurrent writers, got %d", goroutines, len(entries))
+	}
+}
+
+func TestOpen_UnwritableDirectory(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("running as root defeats permission checks")
+	}
+
+	dir := t.TempDir()
+	if err := os.Chmod(dir, 0o500); err != nil {
+		t.Fatalf("chmod: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(dir, 0o700) })
+
+	_, err := Open(filepath.Join(dir, "audit.log"))
+	if err == nil {
+		t.Fatalf("expected an error opening an audit log in an unwritable directory")
 	}
 }
 

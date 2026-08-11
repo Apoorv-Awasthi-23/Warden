@@ -59,8 +59,8 @@ func testConfig(rulesDir string) *config.Config {
 }
 
 // TestBuildEnforcer_SchemaDriftBlocksAffectedServer simulates Schema Drift
-// Detection's actual safety mechanism (architecture.md section 5.8): a rule
-// that was valid against one schema snapshot fails schemacheck.Check once
+// Detection's actual safety mechanism: a rule that was valid against one
+// schema snapshot fails schemacheck.Check once
 // the field it references disappears from the live catalog on a later
 // startup, and the affected server fails closed exactly as it would for a
 // CEL compile error — with no special drift-specific code path.

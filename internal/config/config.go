@@ -29,10 +29,10 @@ type ServerConfig struct {
 	URL       string    `yaml:"url,omitempty"`
 
 	// UnsafeAllowPassThroughOnRuleError lets an operator explicitly accept
-	// running this one server unenforced (like Milestone 1 pass-through) if
-	// its rule file fails to load or compile, instead of the default
-	// fail-closed behavior of blocking every call to it. Named to be
-	// grep-able and to make the risk visible in the config file itself.
+	// running this one server unenforced if its rule file fails to load or
+	// compile, instead of the default fail-closed behavior of blocking every
+	// call to it. Named to be grep-able and to make the risk visible in the
+	// config file itself.
 	UnsafeAllowPassThroughOnRuleError bool `yaml:"unsafe_allow_pass_through_on_rule_error,omitempty"`
 }
 
@@ -42,7 +42,7 @@ type Config struct {
 	// RulesDir is the directory rulestore.Load reads rule files from.
 	// Defaults to "rules" if empty. A directory that doesn't exist at all is
 	// not an error — it means zero rules are configured yet, preserving
-	// Milestone 1 pass-through behavior.
+	// pass-through behavior.
 	RulesDir string `yaml:"rules_dir"`
 
 	// SchemasDir is the directory the Tool Schema Catalog is exported to on

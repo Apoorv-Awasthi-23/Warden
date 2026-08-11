@@ -1,8 +1,7 @@
-// Package policy implements the CEL Policy Engine described in
-// architecture.md section 5.3: rules are CEL expressions evaluated against a
-// structured representation of a single intercepted call (server, tool,
-// params) with no history and no cross-call state. It is a pure evaluator —
-// no I/O, no side effects.
+// Package policy implements the CEL Policy Engine: rules are CEL expressions
+// evaluated against a structured representation of a single intercepted
+// call (server, tool, params) with no history and no cross-call state. It is
+// a pure evaluator — no I/O, no side effects.
 package policy
 
 import (
@@ -15,8 +14,8 @@ import (
 	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/rule"
 )
 
-// CallContext is the structured representation of one intercepted call, per
-// architecture.md section 5.3: server name, tool name, parameters.
+// CallContext is the structured representation of one intercepted call:
+// server name, tool name, parameters.
 type CallContext struct {
 	Server string
 	Tool   string
@@ -29,9 +28,8 @@ type CallContext struct {
 // rules_evaluated field always reflects everything that fired. Conflict is
 // set when rules with both actions matched the same call — Action still
 // resolves to hard_stop in that case (the safe outcome), but the caller is
-// expected to surface the conflict distinctly (architecture.md doesn't
-// define a precedence order, so silently picking one without flagging it
-// would hide a rule-authoring problem).
+// expected to surface the conflict distinctly, since silently picking one
+// without flagging it would hide a rule-authoring problem.
 type Verdict struct {
 	Allowed      bool
 	Action       rule.Action
@@ -81,12 +79,11 @@ func NewEnv() (*cel.Env, error) {
 //
 // Compile failures are attributed per rule.ServerScope in the returned
 // failures map rather than aborting construction entirely, so one server's
-// broken rule can never prevent another server's valid rules from loading
-// (architecture.md section 10's Milestone 2 scope, paired with the product
-// decision that rule problems must isolate to the affected server). The
-// returned error is reserved for a genuine construction failure unrelated to
-// any specific rule (e.g. the fixed environment itself fails to build),
-// which should not happen in practice since its declarations are static.
+// broken rule can never prevent another server's valid rules from loading —
+// rule problems must isolate to the affected server. The returned error is
+// reserved for a genuine construction failure unrelated to any specific rule
+// (e.g. the fixed environment itself fails to build), which should not
+// happen in practice since its declarations are static.
 func NewEngine(rules []rule.Rule) (*Engine, map[string]error, error) {
 	env, err := NewEnv()
 	if err != nil {

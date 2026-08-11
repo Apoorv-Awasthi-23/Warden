@@ -1,7 +1,7 @@
-// Package enforcement implements the Enforcement Layer described in
-// architecture.md section 5.4: it consumes the Policy Engine's verdict for
-// each call and applies allow, hard-stop, or require-approval, handing
-// every decision to the Audit Log Writer regardless of outcome.
+// Package enforcement implements the Enforcement Layer: it consumes the
+// Policy Engine's verdict for each call and applies allow, hard-stop, or
+// require-approval, handing every decision to the Audit Log Writer
+// regardless of outcome.
 package enforcement
 
 import (
@@ -33,10 +33,9 @@ type Result struct {
 // Enforcer holds everything needed to turn a call into an enforcement
 // decision: the compiled Policy Engine, the approval decision surface, the
 // Audit Log Writer, the configured approval timeout, and the set of servers
-// whose rules failed to load or compile and are therefore blocked outright
-// (architecture.md section 10's per-server isolation: one server's broken
-// rules must never affect another server's enforcement, and must never
-// silently fail open for the affected server either).
+// whose rules failed to load or compile and are therefore blocked outright —
+// one server's broken rules must never affect another server's enforcement,
+// and must never silently fail open for the affected server either.
 type Enforcer struct {
 	engine          *policy.Engine
 	approver        Approver

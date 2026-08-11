@@ -1,8 +1,7 @@
 // Package backtest is the "test suite" a rule author (human or agent) runs
-// before committing a rule (architecture.md section 5.6): it replays a
-// single candidate rule against real historical traffic recorded in the
-// Audit Log and reports what it would have matched, without touching live
-// enforcement or the Rule Store.
+// before committing a rule: it replays a single candidate rule against real
+// historical traffic recorded in the Audit Log and reports what it would
+// have matched, without touching live enforcement or the Rule Store.
 package backtest
 
 import (

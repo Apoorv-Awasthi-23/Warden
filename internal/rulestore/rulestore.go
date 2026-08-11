@@ -1,8 +1,8 @@
-// Package rulestore implements the Rule Store described in architecture.md
-// section 5.7: rules live as version-controlled YAML files, one per
-// upstream server (rules/<server>.yaml), plus a reserved rules/_global.yaml
-// for wildcard (server_scope "*") rules. This package owns storage only —
-// CEL compilation is the policy package's job (section 5.3).
+// Package rulestore implements the Rule Store: rules live as
+// version-controlled YAML files, one per upstream server
+// (rules/<server>.yaml), plus a reserved rules/_global.yaml for wildcard
+// (server_scope "*") rules. This package owns storage only — CEL compilation
+// is the policy package's job.
 //
 // A rule's "id" field in YAML is local to its file; Load qualifies it with
 // the owning server's name (or "global" for _global.yaml) using the same
@@ -10,11 +10,10 @@
 // different servers can reuse the same short local rule names without
 // colliding.
 //
-// Load failures are reported per server (architecture.md section 10 pairs
-// with the product decision that one server's broken rule file must never
-// stop the proxy or affect any other server's enforcement) rather than as a
-// single fatal error. A missing rules directory is not an error at all — it
-// means zero rules are configured, preserving Milestone 1's pass-through
+// Load failures are reported per server — one server's broken rule file must
+// never stop the proxy or affect any other server's enforcement — rather
+// than as a single fatal error. A missing rules directory is not an error at
+// all — it means zero rules are configured, preserving pass-through
 // behavior.
 package rulestore
 

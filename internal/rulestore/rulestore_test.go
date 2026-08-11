@@ -175,6 +175,50 @@ rules:
 	}
 }
 
+func TestLoadFile_WithServerOverride(t *testing.T) {
+	dir := t.TempDir()
+	// A scratch file not named like a real server — the override is what
+	// LoadFile's caller (the backtest CLI) supplies for exactly this case.
+	writeFile(t, dir, "draft.yaml", `
+rules:
+  - id: candidate
+    cel_expression: tool == "delete_file"
+    action: hard_stop
+`)
+
+	rules, err := LoadFile(filepath.Join(dir, "draft.yaml"), "github")
+	if err != nil {
+		t.Fatalf("LoadFile: %v", err)
+	}
+	if len(rules) != 1 {
+		t.Fatalf("expected 1 rule, got %d", len(rules))
+	}
+	if rules[0].ServerScope != "github" {
+		t.Fatalf("expected ServerScope overridden to %q, got %q", "github", rules[0].ServerScope)
+	}
+	if rules[0].ID != "github__candidate" {
+		t.Fatalf("expected id prefixed with the override, got %q", rules[0].ID)
+	}
+}
+
+func TestLoadFile_WithoutOverrideDerivesFromFilename(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "aws.yaml", `
+rules:
+  - id: candidate
+    cel_expression: tool == "terminate_instance"
+    action: hard_stop
+`)
+
+	rules, err := LoadFile(filepath.Join(dir, "aws.yaml"), "")
+	if err != nil {
+		t.Fatalf("LoadFile: %v", err)
+	}
+	if len(rules) != 1 || rules[0].ServerScope != "aws" || rules[0].ID != "aws__candidate" {
+		t.Fatalf("expected scope/id derived from filename, got %+v", rules)
+	}
+}
+
 func TestForServer_IncludesWildcards(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, dir, "github.yaml", `

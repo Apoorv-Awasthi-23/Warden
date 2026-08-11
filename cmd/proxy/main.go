@@ -2,7 +2,7 @@
 // server listed in the config file, builds a live tool catalog, compiles the
 // CEL policy rules in the Rule Store, and serves an agent-facing MCP
 // endpoint over stdio that enforces those rules on every call before
-// forwarding it and logging the outcome (architecture.md Milestone 2).
+// forwarding it and logging the outcome.
 package main
 
 import (
@@ -28,11 +28,11 @@ import (
 	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/upstream"
 )
 
-// main dispatches to the "validate" and "backtest" tooling subcommands
-// (architecture.md section 5.6) or, for anything else, the normal proxy run
-// mode — preserving the existing `mcp-policy-proxy [config-path]` usage,
-// where a first argument that isn't one of the two reserved subcommand
-// words is treated as a config path override by run() itself.
+// main dispatches to the "validate" and "backtest" tooling subcommands or,
+// for anything else, the normal proxy run mode — preserving the existing
+// `mcp-policy-proxy [config-path]` usage, where a first argument that isn't
+// one of the two reserved subcommand words is treated as a config path
+// override by run() itself.
 func main() {
 	var err error
 	if len(os.Args) > 1 {
@@ -95,9 +95,9 @@ func run() error {
 		}
 
 		// Load the prior schema dump before it gets overwritten below, so it
-		// can be diffed against the freshly fetched schema (Schema Drift
-		// Detection, architecture.md section 5.8). A server connected for
-		// the first time simply has nothing to diff against yet.
+		// can be diffed against the freshly fetched schema for schema drift
+		// detection. A server connected for the first time simply has
+		// nothing to diff against yet.
 		if old, existed, err := schemadump.Load(cfg.SchemasDir, sc.Name); err != nil {
 			return fmt.Errorf("loading prior schema dump for %q: %w", sc.Name, err)
 		} else if existed {

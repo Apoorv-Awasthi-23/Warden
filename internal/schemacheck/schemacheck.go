@@ -1,7 +1,7 @@
 // Package schemacheck is the deterministic "compiler" check for
-// hand-or-agent-written rules (architecture.md section 5.6): it verifies
-// every params.<field> a rule's CEL expression references actually exists on
-// at least one tool in that rule's scope. CEL syntax/type checking already
+// hand-or-agent-written rules: it verifies every params.<field> a rule's CEL
+// expression references actually exists on at least one tool in that rule's
+// scope. CEL syntax/type checking already
 // happens in internal/policy; this package catches the mistake policy.Engine
 // can't — a field name that will simply never match anything, whether from a
 // typo or an upstream schema that changed out from under an existing rule

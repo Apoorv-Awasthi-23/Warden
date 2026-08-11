@@ -1,6 +1,6 @@
 // Package schemadump exports the live Tool Schema Catalog to disk as one
-// human- and agent-readable JSON file per server (architecture.md section
-// 5.2/5.6). This is the reference material a rule author — a person or any
+// human- and agent-readable JSON file per server. This is the reference
+// material a rule author — a person or any
 // external MCP-capable coding agent — reads to know real tool and field
 // names when hand-writing a rule, without needing a live connection to the
 // proxy or the upstream server. The same file also serves as the baseline

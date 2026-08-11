@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -203,6 +205,31 @@ func TestEnforce_RequireApproval_TimedOut(t *testing.T) {
 	entries := readEntries()
 	if len(entries) != 1 || entries[0].Outcome != audit.OutcomeTimedOut {
 		t.Fatalf("expected exactly one timed_out audit entry, got %+v", entries)
+	}
+}
+
+func TestEnforce_ApproverRequestError(t *testing.T) {
+	engine := mustEngine(t, []rule.Rule{
+		{ID: "approve-me", ServerScope: "github", CELExpression: `tool == "push"`, Action: rule.ActionRequireApproval},
+	})
+	auditor, readEntries := newTestAuditor(t)
+	approver := &mockApprover{err: errors.New("tty unavailable")}
+	e := New(engine, approver, auditor, time.Second, nil)
+
+	result, err := e.Enforce(context.Background(), "agent-1", policy.CallContext{Server: "github", Tool: "push"})
+	if err != nil {
+		t.Fatalf("Enforce: %v", err)
+	}
+	if result.Allowed {
+		t.Fatalf("expected denied when the approval prompt itself errors, got %+v", result)
+	}
+	if !strings.Contains(result.RejectReason, "approval prompt failed") {
+		t.Fatalf("expected reject reason to explain the prompt failure, got %q", result.RejectReason)
+	}
+
+	entries := readEntries()
+	if len(entries) != 1 || entries[0].Outcome != audit.OutcomeDenied {
+		t.Fatalf("expected exactly one denied audit entry, got %+v", entries)
 	}
 }
 

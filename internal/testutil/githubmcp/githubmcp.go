@@ -1,6 +1,4 @@
-// Package githubmcp simulates a GitHub MCP server for tests. It's a
-// realistic stand-in for architecture.md's own running example ("GitHub
-// MCP, stop it from deleting anything in this repo") — a small set of
+// Package githubmcp simulates a GitHub MCP server for tests: a small set of
 // tools shaped like the real GitHub MCP server's delete/push/PR surface,
 // served over an in-process connection via [mcp.NewInMemoryTransports], so
 // tests exercise a genuine MCP handshake and tool listing rather than
@@ -30,10 +28,10 @@ func objectSchema(properties ...string) map[string]any {
 	}
 }
 
-// tools returns the simulated GitHub MCP server's tool set: the same
-// delete-shaped tools architecture.md section 5.6 names as its running
-// example, plus a couple of everyday tools so a rule scoped broadly still
-// has non-destructive traffic to consider.
+// tools returns the simulated GitHub MCP server's tool set: delete-shaped
+// tools for a "stop it from deleting anything in this repo" style rule,
+// plus a couple of everyday tools so a rule scoped broadly still has
+// non-destructive traffic to consider.
 func tools() []struct {
 	tool    *mcp.Tool
 	handler mcp.ToolHandler

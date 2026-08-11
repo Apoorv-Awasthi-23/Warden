@@ -1,6 +1,8 @@
 package schemacheck
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/catalog"
 	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/policy"
 	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/rule"
+	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/schemadump"
 )
 
 type fakeSource struct {
@@ -146,5 +149,67 @@ func TestFromCatalog_Integration(t *testing.T) {
 	bad := rule.Rule{ID: "bad", ServerScope: "github", CELExpression: `params.nonexistent == "x"`, Action: rule.ActionHardStop}
 	if err := Check(bad, env, src); err == nil {
 		t.Fatalf("expected an error for a field not in the real catalog schema")
+	}
+}
+
+func TestFromDump_Integration(t *testing.T) {
+	cat := catalog.New()
+	if err := cat.Update("github", []*mcp.Tool{
+		{
+			Name: "delete_file",
+			InputSchema: map[string]any{
+				"type":       "object",
+				"properties": map[string]any{"path": map[string]any{"type": "string"}},
+			},
+		},
+	}); err != nil {
+		t.Fatalf("cat.Update: %v", err)
+	}
+
+	dir := t.TempDir()
+	if err := schemadump.Write(dir, cat); err != nil {
+		t.Fatalf("schemadump.Write: %v", err)
+	}
+
+	src, err := FromDump(dir)
+	if err != nil {
+		t.Fatalf("FromDump: %v", err)
+	}
+
+	env, err := policy.NewEnv()
+	if err != nil {
+		t.Fatalf("policy.NewEnv: %v", err)
+	}
+
+	good := rule.Rule{ID: "good", ServerScope: "github", CELExpression: `params.path == "x"`, Action: rule.ActionHardStop}
+	if err := Check(good, env, src); err != nil {
+		t.Fatalf("expected no error for a field present in the on-disk dump, got: %v", err)
+	}
+
+	bad := rule.Rule{ID: "bad", ServerScope: "github", CELExpression: `params.nonexistent == "x"`, Action: rule.ActionHardStop}
+	if err := Check(bad, env, src); err == nil {
+		t.Fatalf("expected an error for a field not in the on-disk dump")
+	}
+}
+
+func TestFromDump_MissingDirectoryYieldsEmptySource(t *testing.T) {
+	src, err := FromDump(filepath.Join(t.TempDir(), "does-not-exist"))
+	if err != nil {
+		t.Fatalf("expected a missing dump directory to be treated as empty, not an error, got: %v", err)
+	}
+	if servers := src.Servers(); len(servers) != 0 {
+		t.Fatalf("expected zero servers, got %v", servers)
+	}
+}
+
+func TestFromDump_CorruptedDumpFilePropagatesError(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "github.json"), []byte("{not valid json"), 0o644); err != nil {
+		t.Fatalf("writing corrupted dump fixture: %v", err)
+	}
+
+	_, err := FromDump(dir)
+	if err == nil || !strings.Contains(err.Error(), "loading schema dump") {
+		t.Fatalf("expected an error loading the corrupted dump, got: %v", err)
 	}
 }

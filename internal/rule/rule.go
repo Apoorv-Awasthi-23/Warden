@@ -1,5 +1,5 @@
-// Package rule defines the Rule data model described in architecture.md
-// section 8, and the shape a hand-written rule file's YAML unmarshals into.
+// Package rule defines the Rule data model, and the shape a hand-written
+// rule file's YAML unmarshals into.
 package rule
 
 import (
@@ -15,13 +15,13 @@ const (
 	ActionRequireApproval Action = "require_approval"
 )
 
-// Rule is one Rule as described in architecture.md section 8. ServerScope
-// and ID are not written by hand in a rule file: rulestore.Load sets them
-// after unmarshaling, based on which file the rule came from (the "id" a
-// human writes in YAML is local to its file; ServerScope is derived from the
-// filename). Author, IntentDescription, CreatedAt, and BacktestSummary are
-// the fields Milestone 3's NL->CEL assistant would normally populate; for
-// Milestone 2's hand-written rules they're optional.
+// Rule is one policy rule. ServerScope and ID are not written by hand in a
+// rule file: rulestore.Load sets them after unmarshaling, based on which
+// file the rule came from (the "id" a human writes in YAML is local to its
+// file; ServerScope is derived from the filename). Author, IntentDescription,
+// CreatedAt, and BacktestSummary are the fields an automated NL->CEL
+// rule-authoring assistant would normally populate; for hand-written rules
+// they're optional.
 type Rule struct {
 	ID                string         `yaml:"id"`
 	ServerScope       string         `yaml:"-"`

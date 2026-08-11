@@ -1,7 +1,7 @@
-// Package drift implements the startup-time half of Schema Drift Detection
-// (architecture.md section 5.8): comparing the schema dump on disk from the
-// last time the proxy started against what was just fetched live, so a
-// changed upstream tool schema is visible instead of silent.
+// Package drift implements the startup-time half of Schema Drift Detection:
+// comparing the schema dump on disk from the last time the proxy started
+// against what was just fetched live, so a changed upstream tool schema is
+// visible instead of silent.
 //
 // This package is purely observability — it explains *why* a server's rules
 // might have just broken. The actual safety enforcement (blocking a server

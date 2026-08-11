@@ -2,10 +2,22 @@ package upstream
 
 import (
 	"context"
+	"strings"
 	"testing"
 
+	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/config"
 	"github.com/awasthiapoorv23/mcp-policy-proxy/internal/testutil/githubmcp"
 )
+
+// TestConnect_UnsupportedTransport exercises the one branch of Connect that
+// needs no real process or network I/O to reach: an unrecognized transport
+// value hits the default case and returns immediately.
+func TestConnect_UnsupportedTransport(t *testing.T) {
+	_, err := Connect(context.Background(), config.ServerConfig{Name: "bogus", Transport: "carrier-pigeon"})
+	if err == nil || !strings.Contains(err.Error(), "unsupported transport") {
+		t.Fatalf("expected an unsupported transport error, got %v", err)
+	}
+}
 
 // TestListTools_AgainstSimulatedGitHubServer exercises ListTools against a
 // real MCP handshake and tool listing (in-process, via

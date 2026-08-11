@@ -1,8 +1,7 @@
-// Package router is the agent-facing half of the Router/Transport Layer
-// (architecture.md section 5.1). It serves the aggregated tool catalog to a
-// connecting agent and, for every tools/call, asks the Enforcement Layer
-// whether the call may proceed before forwarding it to the owning upstream
-// server (architecture.md section 6, Milestone 2).
+// Package router is the agent-facing half of the Router/Transport Layer. It
+// serves the aggregated tool catalog to a connecting agent and, for every
+// tools/call, asks the Enforcement Layer whether the call may proceed before
+// forwarding it to the owning upstream server.
 package router
 
 import (

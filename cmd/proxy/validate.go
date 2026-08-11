@@ -10,10 +10,10 @@ import (
 )
 
 // runValidate is the `mcp-policy-proxy validate` subcommand: the "compiler"
-// a rule author (human or agent) runs before committing a rule
-// (architecture.md section 5.6). It checks every rule in rules-dir for CEL
-// compile errors and for params fields that don't exist on any tool in
-// scope, using the schema dump on disk — no live MCP connections required.
+// a rule author (human or agent) runs before committing a rule. It checks
+// every rule in rules-dir for CEL compile errors and for params fields that
+// don't exist on any tool in scope, using the schema dump on disk — no live
+// MCP connections required.
 //
 // Usage: mcp-policy-proxy validate [--schemas-dir dir] [rules-dir]
 // Flags must precede the positional rules-dir argument — Go's flag package

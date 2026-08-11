@@ -11,9 +11,9 @@ import (
 )
 
 // runBacktest is the `mcp-policy-proxy backtest` subcommand: the "test
-// suite" a rule author runs before committing a rule (architecture.md
-// section 5.6). It replays every rule in the given file against the audit
-// log and reports what each would have matched.
+// suite" a rule author runs before committing a rule. It replays every rule
+// in the given file against the audit log and reports what each would have
+// matched.
 func runBacktest(args []string) error {
 	fs := flag.NewFlagSet("backtest", flag.ContinueOnError)
 	since := fs.String("since", "168h", "how far back to replay, as a Go duration (default 168h = 7 days)")

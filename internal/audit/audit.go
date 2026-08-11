@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Outcome mirrors the enum in the Audit Log Entry data model, section 8.
+// Outcome mirrors the enum in the Audit Log Entry data model.
 type Outcome string
 
 const (
@@ -22,9 +22,9 @@ const (
 	OutcomeTimedOut        Outcome = "timed_out"
 )
 
-// Entry is one Audit Log Entry, matching architecture.md section 8.
-// RulesEvaluated, Approver, and PrevEntryHash stay empty until Milestone 2's
-// enforcement layer and the v2 hash-chaining upgrade exist to populate them.
+// Entry is one Audit Log Entry.
+// RulesEvaluated, Approver, and PrevEntryHash stay empty until the
+// enforcement layer and a hash-chaining upgrade exist to populate them.
 type Entry struct {
 	Timestamp      time.Time `json:"timestamp"`
 	AgentID        string    `json:"agent_id"`

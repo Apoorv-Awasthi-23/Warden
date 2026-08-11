@@ -20,7 +20,7 @@ import (
 const draftRuleID = "draft"
 
 // RegisterPolicyTools adds three read-only, MCP-native tools for a rule
-// author's own agent to call directly (architecture.md section 5.6):
+// author's own agent to call directly:
 // policy__list_tool_schemas, policy__validate_rule, and
 // policy__backtest_rule. This is the "agent pings the proxy" path,
 // alongside (not instead of) reading the schema dump files on disk. None of

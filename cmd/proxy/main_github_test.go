@@ -18,9 +18,9 @@ import (
 // githubCatalog builds a real Tool Schema Catalog by connecting to the
 // simulated GitHub MCP server (internal/testutil/githubmcp) and listing its
 // tools through the same upstream.ListTools path main.go uses for a real
-// server — the whole point being to exercise Milestone 3's pipeline against
-// architecture.md's own running example ("GitHub MCP, stop it from deleting
-// anything in this repo") instead of a synthetic one-field fixture.
+// server — the whole point being to exercise the rule pipeline against a
+// realistic "GitHub MCP, stop it from deleting anything in this repo"
+// example instead of a synthetic one-field fixture.
 func githubCatalog(t *testing.T) *catalog.Catalog {
 	t.Helper()
 	session := githubmcp.NewSession(t)
@@ -38,8 +38,7 @@ func githubCatalog(t *testing.T) *catalog.Catalog {
 }
 
 func TestBuildEnforcer_AgainstSimulatedGitHubCatalog_ValidRule(t *testing.T) {
-	// The architecture.md example, translated to CEL: block deleting a
-	// branch named "main" specifically.
+	// Blocks deleting a branch named "main" specifically.
 	rulesDir := writeRulesDir(t, `tool == "delete_branch" && has(params.branch) && params.branch == "main"`)
 	cfg := testConfig(rulesDir)
 
